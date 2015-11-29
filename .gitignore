@@ -1,4 +1,5 @@
 experimental/servlets/target/*
+backend/target/*
 *.iml
 *.log
 .idea
