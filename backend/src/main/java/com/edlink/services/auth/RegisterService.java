@@ -40,6 +40,7 @@ public class RegisterService {
 
     if (userCredsCollection.find(eq(AppConstants.USERNAME,
         registerDTO.getUserName())).first() == null) {
+      // Username can be used
       userCredsCollection.insertOne(appUtils.convertToDocument(registerDTO));
     } else {
       final ErrorDetails errorDetails = new ErrorDetails();

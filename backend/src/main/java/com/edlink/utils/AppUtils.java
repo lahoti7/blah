@@ -1,8 +1,18 @@
 package com.edlink.utils;
 
 import java.lang.reflect.Field;
+import java.text.ParseException;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 
@@ -27,5 +37,23 @@ public class AppUtils {
       log.debug("Exception while retrieving field value from class");
     }
     return document;
+  }
+
+  public String generateJWT(final String subject) throws JOSEException {
+    final JWSSigner jwsSigner = new MACSigner(AppConstants.sharedSecret);
+    final JWTClaimsSet.Builder jwtClaimsSet = new JWTClaimsSet.Builder();
+    jwtClaimsSet.subject(subject);
+    final SignedJWT signedJWT = new SignedJWT(
+        new JWSHeader(JWSAlgorithm.HS256), jwtClaimsSet.build());
+    signedJWT.sign(jwsSigner);
+    return signedJWT.serialize();
+  }
+
+  public JWTClaimsSet parseJWT(final String jwtToken) throws ParseException,
+      JOSEException {
+    final SignedJWT signedJWT = SignedJWT.parse(jwtToken);
+    final JWSVerifier verifier = new MACVerifier(AppConstants.sharedSecret);
+    signedJWT.verify(verifier);
+    return signedJWT.getJWTClaimsSet();
   }
 }

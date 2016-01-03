@@ -5,6 +5,7 @@ import lombok.Setter;
 
 @Setter
 public class ResponseDTO<T> {
+  @JsonProperty("response")
   private T response;
 
   @JsonProperty("error_details")
