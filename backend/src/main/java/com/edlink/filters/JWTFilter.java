@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.ext.Provider;
 
+import com.edlink.exceptions.NotAuthorizedException;
 import com.edlink.utils.AppUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
@@ -42,12 +42,12 @@ public class JWTFilter implements ContainerRequestFilter {
       request.setEntityStream(new ByteArrayInputStream(
           updatedInput.getBytes()));
     } catch (final Exception ex) {
-      throw new WebApplicationException(ex);
+      throw new NotAuthorizedException(ex.getMessage());
     }
   }
 
   private String getUpdatedInput(final ContainerRequestContext request,
-      final String inputString) throws Exception {
+      final String inputString) throws IOException {
     final ObjectMapper mapper = new ObjectMapper();
     final Map<String, Object> updatedMapFormat = new HashMap<>();
     Map<String, Object> mapFormat = new HashMap<>();
@@ -59,12 +59,17 @@ public class JWTFilter implements ContainerRequestFilter {
 
     final String authHeader = request.getHeaderString(AUTHORIZATION_HEADER);
     if (!StringUtils.isEmpty(authHeader)) {
-      final JWTClaimsSet jwtClaimsSet = appUtils.parseJWT(
-          authHeader.split(" ")[1]);
+      final JWTClaimsSet jwtClaimsSet;
+      try {
+        jwtClaimsSet = appUtils.parseJWT(
+            authHeader.split(" ")[1]);
+      } catch (final Exception ex) {
+        throw new NotAuthorizedException("Incorrect credentials passed");
+      }
       updatedMapFormat.put(REQUEST, mapFormat);
       updatedMapFormat.put(USER_ID, jwtClaimsSet.getSubject());
       return mapper.writeValueAsString(updatedMapFormat);
     }
-    throw new WebApplicationException();
+    return null;
   }
 }
