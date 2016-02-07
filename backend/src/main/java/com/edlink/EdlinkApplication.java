@@ -2,6 +2,7 @@ package com.edlink;
 
 import java.security.SecureRandom;
 
+import com.edlink.filters.CORSFilter;
 import com.edlink.filters.JWTFeature;
 import com.edlink.services.auth.LoginService;
 import com.edlink.services.auth.RegisterService;
@@ -31,5 +32,6 @@ public class EdlinkApplication extends Application<EdlinkConfiguration> {
     environment.jersey().register(testService);
 
     environment.jersey().register(JWTFeature.class);
+    environment.jersey().register(CORSFilter.class);
   }
 }
